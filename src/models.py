@@ -3,7 +3,7 @@ import torch.nn as nn
 
 class SimpleFLNet(nn.Module):
 	def __init__(self, input_size, hidden_size):
-		super()
+		super(SimpleFLNet, self).__init__()
 		self.fc1 = nn.Linear(input_size, hidden_size)
 		self.fc2 = nn.Linear(hidden_size, 1)
 
@@ -12,6 +12,7 @@ class SimpleFLNet(nn.Module):
 	def forward(self, x):
 		hidden = self.sig(self.fc1(x))
 		final = self.fc2(hidden)
+		final = self.sig(final)
 		return final
 
 

@@ -20,4 +20,3 @@ def get_modified_classes_info(project, bid):
         classes = list(classes.split(';'))
         if int(curr_bid) == int(bid):
             return classes
-

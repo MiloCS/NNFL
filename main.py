@@ -1,6 +1,14 @@
-import src.d4jUtil as d4j
+import src.d4j_util as d4j
 import src.config as cf
 import src.datasets.d4j_fl as d4j_fl
+import src.models as models
+import src.train_util as trn
+
+import psycopg2
+import numpy as np
+import math
+import torch
+
 
 if __name__ == '__main__':
     # We're going to build a FL NN for a specific bug.
@@ -14,23 +22,46 @@ if __name__ == '__main__':
 
     # get all test_id's for a specific bug, the fl dataset only has test runs for the 'b' versions
     full_project_name = project + '_' + bug_id + 'b'
-    tests = d4j_fl.get_all_test_ids(cf.c_str, full_project_name)
-    print("Num Tests", len(tests))
+    with psycopg2.connect(cf.c_str) as conn:
+        with conn.cursor() as cur:
+            tests = d4j_fl.get_all_tests(cur, full_project_name)
+            print("Num Tests", len(tests))
 
-    # get the test info for the first test_id
-    test_id = tests[0]
-    info = d4j_fl.get_test_tuple(cf.c_str, test_id)
-    print(info)
-    _, _, test_class, test_method = info
+            X, Y, n_lab, d_lab = d4j_fl.data_formatted(cur, full_project_name)
+            # 2d np.array uint, 2d np.array uint, list of row labels, list of col labels
+            # Y; 0=pass, 1=fail
+            print(X.shape, Y.shape)
 
-    # TODO - method to request coverage & result for specific test_id
+            # this step is optional; we may want to investigate the model difference between using the line 'count' or just the line 'binary' as input
+            X = np.maximum(X, 1)
 
-    # TODO - coerce each coverage str to binary list of length N corresponding to the N program lines
+            # we then train a NN to learn execution result from the coverages
+            m = models.SimpleFLNet(X.shape[1], 100)
+            trn_loader = [(torch.tensor(X), torch.tensor(Y))]
+            trn.train_fl(m, 100, trn_loader)
 
-    # we then train a NN to learn execution result from the coverage binary list, then extract the suspicion scores from the NN weights
-    # also need to implement SB-FL Ochai, should be trivial
 
-    # lastly, we need to compute the EXAM score which tells us the accuracy of a particular FL technique (we'll have to use class level localization for now...)
+            # once the NN is trained, its pretty easy to extract the suspicion scores using 'virtual tests cases'
+            virtual_tests = np.identity(X.shape[1], dtype=np.single)
+            nn_suspicion_scores = m.forward(torch.tensor(virtual_tests))
+
+            # we can then compare this to SB-FL Ochai
+            def ochiai(p, f, total_f):
+                den = math.sqrt(total_f * (f + p))
+                return f / den
+            total_f = np.sum(Y)
+            fails = np.sum(X, axis=0)
+            print('fails shape', fails.shape)
+            sbfl_suspicion_scores = []
+            for f in list(fails):
+                p = X.shape[0] - f
+                sbfl_suspicion_scores.append(ochiai(p, f, total_f))
+
+            # it might be interesting to investigation the correlation, i'd expect some non trivial positive value after traininng
+            print('sbfl/nn localization correlation coef:', np.corrcoef(nn_suspicion_scores.detach().numpy().T, np.array(sbfl_suspicion_scores))[0, 1])
+            # and check if can overfit to 100% trn accuracy
+
+            # TODO - compute the EXAM scores to compare the accuracy of different FL techniques
 
 
 
