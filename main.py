@@ -8,7 +8,7 @@ import psycopg2
 import numpy as np
 import math
 import torch
-
+from torch.utils.data import TensorDataset, DataLoader
 
 if __name__ == '__main__':
     # We're going to build a FL NN for a specific bug.
@@ -33,12 +33,19 @@ if __name__ == '__main__':
             print(X.shape, Y.shape)
 
             # this step is optional; we may want to investigate the model difference between using the line 'count' or just the line 'binary' as input
-            X = np.maximum(X, 1)
+            X = np.minimum(X, 1)
 
             # we then train a NN to learn execution result from the coverages
             m = models.SimpleFLNet(X.shape[1], 100)
-            trn_loader = [(torch.tensor(X), torch.tensor(Y))]
-            trn.train_fl(m, 100, trn_loader)
+
+            batch_size = 500
+            inputs = torch.tensor(X)
+            targets = torch.tensor(Y)
+
+            dataset = TensorDataset(inputs, targets)
+            data_loader = DataLoader(dataset, batch_size, shuffle=True)
+
+            trn.train_fl(m, 1000, data_loader)
 
 
             # once the NN is trained, its pretty easy to extract the suspicion scores using 'virtual tests cases'
