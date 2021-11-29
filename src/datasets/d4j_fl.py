@@ -53,7 +53,7 @@ def data_formatted(cur, project_vid):
     d_lab = []
 
     for _, test_class, test_method in tests:
-        n_lab.append(test_class + '::' + test_method)
+        n_lab.append(test_class + '#' + test_method)
 
     d = 0
     for line_id in line_set:

@@ -1,5 +1,6 @@
 # NNFL
 tmp/
+data/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -180,3 +181,4 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 .DS_Store
+src/config.py

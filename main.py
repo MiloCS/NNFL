@@ -3,11 +3,13 @@ import src.config as cf
 import src.datasets.d4j_fl as d4j_fl
 import src.models as models
 import src.train_util as trn
+from src.SBFL.sbfl.base import SBFL
 
 import psycopg2
 import numpy as np
 import math
 import torch
+import matplotlib.pyplot as plt
 from torch.utils.data import TensorDataset, DataLoader
 
 if __name__ == '__main__':
@@ -34,6 +36,7 @@ if __name__ == '__main__':
 
             # this step is optional; we may want to investigate the model difference between using the line 'count' or just the line 'binary' as input
             X = np.minimum(X, 1)
+            virtual_tests = np.identity(X.shape[1], dtype=np.single)
 
             # we then train a NN to learn execution result from the coverages
             m = models.SimpleFLNet(X.shape[1], 100)
@@ -45,30 +48,26 @@ if __name__ == '__main__':
             dataset = TensorDataset(inputs, targets)
             data_loader = DataLoader(dataset, batch_size, shuffle=True)
 
+            nn_suspicion_scores_before_trn = m.forward(torch.tensor(virtual_tests))
             trn.train_fl(m, 1000, data_loader)
 
 
             # once the NN is trained, its pretty easy to extract the suspicion scores using 'virtual tests cases'
-            virtual_tests = np.identity(X.shape[1], dtype=np.single)
             nn_suspicion_scores = m.forward(torch.tensor(virtual_tests))
-
             # we can then compare this to SB-FL Ochai
-            def ochiai(p, f, total_f):
-                den = math.sqrt(total_f * (f + p))
-                return f / den
-            total_f = np.sum(Y)
-            fails = np.sum(X, axis=0)
-            print('fails shape', fails.shape)
+
+            X = np.array(X, dtype=bool)
+            Y = np.array(Y, dtype=bool)
             sbfl_suspicion_scores = []
-            for f in list(fails):
-                p = X.shape[0] - f
-                sbfl_suspicion_scores.append(ochiai(p, f, total_f))
+            sbfl = SBFL(formula='Ochiai')
+            sbfl.fit(X, Y)
+            # print(sbfl.ranks(method='max'))
+            sbfl_suspicion_scores = sbfl.to_frame()['score']
 
-            # it might be interesting to investigation the correlation, i'd expect some non trivial positive value after traininng
-            print('sbfl/nn localization correlation coef:', np.corrcoef(nn_suspicion_scores.detach().numpy().T, np.array(sbfl_suspicion_scores))[0, 1])
-            # and check if can overfit to 100% trn accuracy
+            # it might be interesting to investigation the correlation, i'd expect some non trivial positive value after training
+            print('sbfl/nn localization correlation coef before:', np.corrcoef(nn_suspicion_scores_before_trn.detach().numpy().T, np.array(sbfl_suspicion_scores)))
+            print('sbfl/nn localization correlation coef after:', np.corrcoef(nn_suspicion_scores.detach().numpy().T, np.array(sbfl_suspicion_scores)))
 
-            # TODO - compute the EXAM scores to compare the accuracy of different FL techniques
 
 
 

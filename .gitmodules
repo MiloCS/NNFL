@@ -1,0 +1,3 @@
+[submodule "src/SBFL"]
+	path = src/SBFL
+	url = https://github.com/Suresoft-GLaDOS/SBFL.git
