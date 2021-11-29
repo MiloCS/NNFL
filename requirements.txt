@@ -1,3 +1,5 @@
 psycopg2
 torch
 numpy
+seaborn
+matplotlib

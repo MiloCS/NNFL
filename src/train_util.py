@@ -18,8 +18,7 @@ def train_fl(model, epochs, train_loader):
 			model.train()
 
 			scores = model.forward(x)
-			loss = F.cross_entropy(scores, y)
-
+			loss = F.mse_loss(scores, y)
 			# zeroing gradients and then
 			optimizer.zero_grad()
 			loss.backward()
