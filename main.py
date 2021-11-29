@@ -3,7 +3,7 @@ import src.config as cf
 import src.datasets.d4j_fl as d4j_fl
 import src.models as models
 import src.train_util as trn
-from src.SBFL.sbfl.base import SBFL
+#from src.SBFL.sbfl.base import SBFL
 
 import psycopg2
 import numpy as np
