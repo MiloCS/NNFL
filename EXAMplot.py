@@ -87,4 +87,5 @@ if __name__=="__main__":
 
     sns.kdeplot(data=df, bw_method=.2)
     plt.xlabel("EXAM score")
+    plt.xscale('log')
     plt.show()
