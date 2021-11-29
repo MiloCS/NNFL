@@ -8,6 +8,7 @@ import psycopg2
 import numpy as np
 import math
 import torch
+from torch.utils.data import DataLoader
 
 
 if __name__ == '__main__':
@@ -15,8 +16,8 @@ if __name__ == '__main__':
     project = "Mockito"
     bug_id = "10"
 
-    res = d4j.get_modified_classes_info("Mockito", "10")
-    print("Classes Modified in Fix", res)
+    #res = d4j.get_modified_classes_info("Mockito", "10")
+    #print("Classes Modified in Fix", res)
 
     # ideally, we want to fault localize at a line level, but we need to extract the modified line information from the git log in the 'b' and 'f' versions of the bug and diff'ing the logs
 
@@ -37,7 +38,9 @@ if __name__ == '__main__':
 
             # we then train a NN to learn execution result from the coverages
             m = models.SimpleFLNet(X.shape[1], 100)
-            trn_loader = [(torch.tensor(X), torch.tensor(Y))]
+            print(X)
+            training_data = [(torch.tensor(X), torch.tensor(Y))]
+            trn_loader = DataLoader(training_data, batch_size=64, shuffle=True)
             trn.train_fl(m, 100, trn_loader)
 
 

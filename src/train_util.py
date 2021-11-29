@@ -1,7 +1,7 @@
 import torch.optim as optim
 import torch.nn.functional as F
 import torch
-
+from torch.utils.data import Dataset
 
 """
 TODO:
@@ -27,3 +27,11 @@ def train_fl(model, epochs, train_loader):
 
 			if t % 100 == 0 and e % 10 == 0:
 				print('Iteration %d, loss = %.4f' % (t, loss.item()))
+
+
+class CoverageDataset(Dataset):
+	def __init__(self, data):
+		super()
+
+	def __len__(self):
+		return 0
