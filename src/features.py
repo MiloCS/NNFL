@@ -2,7 +2,7 @@ import numpy as np
 from sklearn.preprocessing import binarize
 
 complexity_funcs = [num_keywords, line_length, num_tokens, num_alphanum, num_operators, num_functions, assigns_variable, is_comment]
-spec_funcs = [ochiai, op2, dstar, tarantula, jaccard, gp13]
+spec_funcs = ['Ochiai', 'Tarantula', 'Jaccard', 'RussellRao', 'Hamann', 'SorensonDice', 'Dice', 'Goodman', 'SimpleMatching', 'Op1', 'Ample', 'Dstar2', 'Ochiai2', 'Hamming', 'Euclid', 'Overlap']
 
 java_keywords = []
 
@@ -13,8 +13,10 @@ def get_full_feature_vector(X, y, filename, simple_model):
 	return np.hstack((s, c, r))
 
 def get_spectrum_features(X, y):
-	p, f, fn, pn = spectrum_preprocess(X, y)
-	return np.array([f(line) for f in spec_funcs])
+	for sf in spec_funcs:
+		sbfl = SBFL(formula=sf)
+		s = sbfl.fit_predict(X, y)
+		print(s.shape)
 
 def get_complexity_features(filename):
 	lines = []
@@ -26,38 +28,43 @@ def get_complexity_features(filename):
 		result.append(line_result)
 	return np.array(result)
 
-def spectrum_preprocess(X, y):
-    X, y = np.array(X), np.array(y)
-    assert np.all(X >= 0)
-    assert np.all(np.isin(y, [0, 1]))
+def get_lines_from_labels(labels):
+	#TODO: Declan do this bit
+	pass
 
-    X = binarize(X)
-    y = np.array(y)
-    f = np.sum(X[y==0], axis=0)
-    fn = np.sum(y == 0) - f
-    p = np.sum(X[y==1], axis=0)
-    pn = np.sum(y == 1) - p
-    return p, f, fn, pn
 
-#spectrum based features
-def ochiai(p, f, fn, pn):
-	den = math.sqrt(total_f * (f + p))
-	return f / den
+# def spectrum_preprocess(X, y):
+#     X, y = np.array(X), np.array(y)
+#     assert np.all(X >= 0)
+#     assert np.all(np.isin(y, [0, 1]))
 
-def op2(p, f, fn, pn):
-    return f-p/(p+pn+1)
+#     X = binarize(X)
+#     y = np.array(y)
+#     f = np.sum(X[y==0], axis=0)
+#     fn = np.sum(y == 0) - f
+#     p = np.sum(X[y==1], axis=0)
+#     pn = np.sum(y == 1) - p
+#     return p, f, fn, pn
 
-def dstar(p, f, fn, pn, star=2):
-    return np.power(f,star)/(p+fn)
+# #spectrum based features
+# def ochiai(p, f, fn, pn):
+# 	den = math.sqrt(total_f * (f + p))
+# 	return f / den
 
-def tarantula(p, f, fn, pn, fn):
-    return (f/(f+fn))/((f/(f+fn))+(p/(p+pn)))
+# def op2(p, f, fn, pn):
+#     return f-p/(p+pn+1)
 
-def jaccard(p, f, fn, pn, fn):
-    return f/(f+fn+p)
+# def dstar(p, f, fn, pn, star=2):
+#     return np.power(f,star)/(p+fn)
 
-def gp13(p, f, fn, pn):
-    return f*(1 + 1/(2*p+f))
+# def tarantula(p, f, fn, pn, fn):
+#     return (f/(f+fn))/((f/(f+fn))+(p/(p+pn)))
+
+# def jaccard(p, f, fn, pn, fn):
+#     return f/(f+fn+p)
+
+# def gp13(p, f, fn, pn):
+#     return f*(1 + 1/(2*p+f))
 
 
 #complexity based features
