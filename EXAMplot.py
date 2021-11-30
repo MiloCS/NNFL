@@ -14,7 +14,6 @@ from torch.utils.data import TensorDataset, DataLoader
 import src.models as models
 import src.train_util as trn
 
-TMP_DIR = 'tmp/'
 
 if __name__=="__main__":
     projects = ['Chart']    #, 'Closure', 'Lang', 'Math', 'Mockito', 'Time'

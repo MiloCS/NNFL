@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.preprocessing import binarize
+import src.d4j_util as d4j_util
 
 complexity_funcs = [num_keywords, line_length, num_tokens, num_alphanum, num_operators, num_functions, assigns_variable, is_comment]
 spec_funcs = ['Ochiai', 'Tarantula', 'Jaccard', 'RussellRao', 'Hamann', 'SorensonDice', 'Dice', 'Goodman', 'SimpleMatching', 'Op1', 'Ample', 'Dstar2', 'Ochiai2', 'Hamming', 'Euclid', 'Overlap']
@@ -28,9 +29,12 @@ def get_complexity_features(filename):
 		result.append(line_result)
 	return np.array(result)
 
-def get_lines_from_labels(labels):
-	#TODO: Declan do this bit
-	pass
+def get_lines_from_labels(labels, pid, bid):
+	p_vid = pid+'_'+bid+'b'
+	d4j_util.checkout_project_vid(p_vid)
+	program_statements_dict = d4j_util.get_program_statements_dict(p_vid)
+	return [program_statements_dict[key] for key in labels]
+
 
 
 # def spectrum_preprocess(X, y):
