@@ -42,7 +42,11 @@ def assigns_variable(line):
 	return "=" in line
 
 def is_comment(line):
-	return "//" in line or line.strip()[0] == "*"
+	default = False
+	stripped = line.strip()
+	if len(stripped) > 0:
+		default = default or line.strip()[0] == "*"
+	return "//" in line or default
 
 complexity_funcs = [num_keywords, line_length, num_tokens, num_alphanum, num_operators, num_functions, assigns_variable, is_comment]
 spec_funcs = ['Ochiai', 'Tarantula', 'Jaccard', 'RussellRao', 'Hamann', 'SorensonDice', 'Dice', 'Goodman', 'SimpleMatching', 'Op1', 'Ample', 'Dstar2', 'Ochiai2', 'Hamming', 'Euclid']
