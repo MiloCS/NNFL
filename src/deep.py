@@ -2,13 +2,13 @@ import torch
 import torch.nn as nn
 
 class FLFeatureNet(nn.Module):
-	def __init__(spec_feats, complex_feats, full_feats=100):
+	def __init__(self, spec_feats, complex_feats, full_feats=100):
 		self.sf = spec_feats
 		self.cf = complex_feats
 		comb_f = spec_feats + complex_feats
 		f = comb_f + 1
 		spec_lin = nn.Linear(spec_feats, spec_feats)
-		spec_complex_lin = nn.Linear(comb_f)
+		spec_complex_lin = nn.Linear(comb_f, comb_f)
 
 		relu = nn.ReLU()
 		bn1 = nn.BatchNorm1d(spec_feats)
@@ -18,7 +18,7 @@ class FLFeatureNet(nn.Module):
 		full_lin = nn.Linear(f, full_feats)
 		final_lin = nn.Linear(full_feats, 1)
 
-	def forward(x):
+	def forward(self, x):
 		s = x[0:self.sf]
 		c = x[self.sf, self.cf]
 		r = x[-1]

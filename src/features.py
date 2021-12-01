@@ -1,11 +1,51 @@
 import numpy as np
-from sklearn.preprocessing import binarize
 import src.d4j_util as d4j_util
+from src.SBFL.sbfl.base import SBFL
+
+java_keywords = ['abstract', 'continue', 'for', 'new', 'switch', 'assert', 'default', 'goto', 'package', 'synchronized', 'boolean', 'do', 'if', 'private', 'this', 'break', 'double', 'implements', 'protected', 'throw', 'byte', 'else', 'import', 'public', 'throws', 'case', 'enum', 'instanceof', 'return', 'transient', 'catch', 'extends', 'int', 'short', 'try', 'char', 'final', 'interface', 'static', 'void', 'class', 'finally', 'long', 'strictfp', 'volatile', 'const', 'float', 'native', 'super', 'while']
+
+
+#complexity based features
+def num_keywords(line):
+	total = 0
+	s = line.strip().split()
+	for st in s:
+		if st in java_keywords:
+			total += 1
+	return total
+
+def line_length(line):
+	return len(line)
+
+def num_tokens(line):
+	s = line.strip().split(" ")
+	return len(s)
+
+def num_alphanum(line):
+	total = 0
+	for char in line:
+		if isalnum(char):
+			total += 1
+	return total
+
+def num_operators(line):
+	operators = ["+", "-", "*", "/", "**", "%"]
+	total = 0
+	for o in operators:
+		total += line.count(o)
+	return total
+
+def num_functions(line):
+	return line.count("(") // 2
+
+def assigns_variable(line):
+	return "=" in line
+
+def is_comment(line):
+	return "//" in line or line.strip()[0] == "*"
 
 complexity_funcs = [num_keywords, line_length, num_tokens, num_alphanum, num_operators, num_functions, assigns_variable, is_comment]
-spec_funcs = ['Ochiai', 'Tarantula', 'Jaccard', 'RussellRao', 'Hamann', 'SorensonDice', 'Dice', 'Goodman', 'SimpleMatching', 'Op1', 'Ample', 'Dstar2', 'Ochiai2', 'Hamming', 'Euclid', 'Overlap']
-
-java_keywords = []
+spec_funcs = ['Ochiai', 'Tarantula', 'Jaccard', 'RussellRao', 'Hamann', 'SorensonDice', 'Dice', 'Goodman', 'SimpleMatching', 'Op1', 'Ample', 'Dstar2', 'Ochiai2', 'Hamming', 'Euclid']
 
 def get_full_feature_vector(X, y, filename, simple_model):
 	r = simple_model(X)
@@ -14,16 +54,20 @@ def get_full_feature_vector(X, y, filename, simple_model):
 	return np.hstack((s, c, r))
 
 def get_spectrum_features(X, y):
+	result = None
 	for sf in spec_funcs:
 		sbfl = SBFL(formula=sf)
 		s = sbfl.fit_predict(X, y)
-		print(s.shape)
+		if result is None:
+			result = s
+		else:
+			result = np.vstack((result, s))
+	print(result.shape)
+	return result
 
-def get_complexity_features(filename):
-	lines = []
-	result = []
-	with open(filename, 'r') as f:
-		lines = f.readlines()
+
+def get_complexity_features(labels, pid, bid):
+	lines = get_lines_from_labels(labels, pid, bid)
 	for line in lines:
 		line_result = [f(line) for f in complexity_funcs]
 		result.append(line_result)
@@ -31,6 +75,7 @@ def get_complexity_features(filename):
 
 def get_lines_from_labels(labels, pid, bid):
 	p_vid = pid+'_'+bid+'b'
+	print(p_vid)
 	d4j_util.checkout_project_vid(p_vid)
 	program_statements_dict = d4j_util.get_program_statements_dict(p_vid)
 	return [program_statements_dict[key] for key in labels]
@@ -69,39 +114,3 @@ def get_lines_from_labels(labels, pid, bid):
 
 # def gp13(p, f, fn, pn):
 #     return f*(1 + 1/(2*p+f))
-
-
-#complexity based features
-def num_keywords(line):
-	#TODO
-	return 0
-
-def line_length(line):
-	return len(line)
-
-def num_tokens(line):
-	s = line.strip().split(" ")
-	return len(s)
-
-def num_alphanum(line):
-	total = 0
-	for char in line:
-		if isalnum(char):
-			total += 1
-	return total
-
-def num_operators(line):
-	operators = ["+", "-", "*", "/", "**", "%"]
-	total = 0
-	for o in operators:
-		total += line.count(o)
-	return total
-
-def num_functions(line):
-	return line.count("(") // 2
-
-def assigns_variable(line):
-	return "=" in line
-
-def is_comment(line):
-	return "//" in line or line.strip()[0] == "*"
