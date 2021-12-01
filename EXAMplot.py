@@ -5,8 +5,6 @@ import numpy as np
 import pandas as pd
 from scipy.stats import rankdata
 from src.SBFL.sbfl.base import SBFL
-import seaborn as sns
-import matplotlib.pyplot as plt
 from collections import defaultdict
 
 import torch
@@ -83,8 +81,3 @@ if __name__=="__main__":
     df = df.assign(pid=pids)
     df = df.assign(bid=bids)
     df.to_pickle("./EXAM.pkl")
-
-    sns.kdeplot(data=df, bw_method=.2)
-    plt.xlabel("EXAM score")
-    plt.xscale('log')
-    plt.show()
