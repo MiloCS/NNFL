@@ -23,10 +23,12 @@ class SimpleFLReluNet(nn.Module):
 		self.fc2 = nn.Linear(hidden_size, 1)
 
 		self.relu = nn.ReLU()
+		self.sig = nn.Sigmoid()
 
 	def forward(self, x):
 		hidden = self.relu(self.fc1(x))
 		final = self.fc2(hidden)
+		final = self.sig(final)
 		return final
 
 
