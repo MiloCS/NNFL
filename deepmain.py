@@ -46,9 +46,9 @@ if __name__=="__main__":
                     c = feat.get_complexity_features(d_lab, pid, bid)
                     print(c.shape)
                     if complex_data is None:
-                        complex_data = f
+                        complex_data = c
                     else:
-                        complex_data = np.hstack((sbfl_data, f))
+                        complex_data = np.hstack((sbfl_data, c))
         #sbfl_data[~np.isfinite(total_data)] = 0
         #print(sbfl_data.shape)
         np.savez("tmp/complex.npz", complex_data=complex_data)
