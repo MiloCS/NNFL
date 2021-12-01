@@ -24,7 +24,7 @@ def num_tokens(line):
 def num_alphanum(line):
 	total = 0
 	for char in line:
-		if isalnum(char):
+		if str(char).isalnum():
 			total += 1
 	return total
 
@@ -67,6 +67,7 @@ def get_spectrum_features(X, y):
 
 
 def get_complexity_features(labels, pid, bid):
+	result = []
 	lines = get_lines_from_labels(labels, pid, bid)
 	for line in lines:
 		line_result = [f(line) for f in complexity_funcs]
@@ -75,7 +76,6 @@ def get_complexity_features(labels, pid, bid):
 
 def get_lines_from_labels(labels, pid, bid):
 	p_vid = pid+'_'+bid+'b'
-	print(p_vid)
 	d4j_util.checkout_project_vid(p_vid)
 	program_statements_dict = d4j_util.get_program_statements_dict(p_vid)
 	return [program_statements_dict[key] for key in labels]
