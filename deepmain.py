@@ -48,7 +48,7 @@ if __name__=="__main__":
                     if complex_data is None:
                         complex_data = c
                     else:
-                        complex_data = np.hstack((sbfl_data, c))
+                        complex_data = np.hstack((complex_data, c))
         #sbfl_data[~np.isfinite(total_data)] = 0
         #print(sbfl_data.shape)
         np.savez("tmp/complex.npz", complex_data=complex_data)
