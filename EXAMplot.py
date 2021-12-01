@@ -10,6 +10,8 @@ from collections import defaultdict
 import torch
 from torch.utils.data import TensorDataset, DataLoader
 import src.models as models
+from src.classifiers.rbf import RBF
+from src.classifiers.rbf import sigmoid
 import src.train_util as trn
 
 
@@ -32,7 +34,7 @@ if __name__=="__main__":
                 num_program_statements = X.shape[1]
                 fix_statements = fixed.get_fixes(pid, bid)
 
-                # NNFL
+                # NNFL - SimpleFL
                 virtual_tests = np.identity(X.shape[1], dtype=np.single)
                 m = models.SimpleFLNet(X.shape[1], 100)
 
@@ -54,7 +56,41 @@ if __name__=="__main__":
 
                 if (len(ranks) > 0):  # TODO this should always be true but some bug is making it false sometimes
                     curr_EXAM = min(ranks) / num_program_statements
-                    EXAM_scores['simpleFlnet'].append(curr_EXAM)
+                    EXAM_scores['simpleFl'].append(curr_EXAM)
+
+                # NNFL - SimpleFL-relu
+                m = models.SimpleFLReluNet(X.shape[1], 100)
+                trn.train_fl(m, 1000, data_loader)
+                nn_scores = m.forward(torch.tensor(virtual_tests)).detach().numpy().T
+                all_ranks = rankdata(-nn_scores, method='average')
+
+                fix_indexes = []
+                for fix_point in fix_statements:
+                    idx, = np.where(np.array(d_lab) == fix_point)
+                    for elem in idx:
+                        fix_indexes.append(elem)
+                ranks = np.take(all_ranks, fix_indexes)
+
+                if (len(ranks) > 0):  # TODO this should always be true but some bug is making it false sometimes
+                    curr_EXAM = min(ranks) / num_program_statements
+                    EXAM_scores['simpleFl-relu'].append(curr_EXAM)
+
+                # NNFL - RBF-sigmoid
+                m = RBF(X.shape[1], 1, sigmoid)
+                trn.train_fl(m, 1000, data_loader)
+                nn_scores = m.forward(torch.tensor(virtual_tests)).detach().numpy().T
+                all_ranks = rankdata(-nn_scores, method='average')
+
+                fix_indexes = []
+                for fix_point in fix_statements:
+                    idx, = np.where(np.array(d_lab) == fix_point)
+                    for elem in idx:
+                        fix_indexes.append(elem)
+                ranks = np.take(all_ranks, fix_indexes)
+
+                if (len(ranks) > 0):  # TODO this should always be true but some bug is making it false sometimes
+                    curr_EXAM = min(ranks) / num_program_statements
+                    EXAM_scores['RBF-sigmoid'].append(curr_EXAM)
 
                 # SBFL
                 X = np.array(X, dtype=bool)

@@ -18,7 +18,7 @@ class SimpleFLNet(nn.Module):
 
 class SimpleFLReluNet(nn.Module):
 	def __init__(self, input_size, hidden_size):
-		super()
+		super(SimpleFLReluNet, self).__init__()
 		self.fc1 = nn.Linear(input_size, hidden_size)
 		self.fc2 = nn.Linear(hidden_size, 1)
 
